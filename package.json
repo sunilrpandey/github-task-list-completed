@@ -15,8 +15,9 @@
     "test": "jest"
   },
   "dependencies": {
+    "marked": "^0.8.0",
     "probot": "^9.0.0",
-    "marked": "^0.8.0"
+    "update-notifier": "^5.0.1"
   },
   "devDependencies": {
     "jest": "^23.2.0",

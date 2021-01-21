@@ -1,4 +1,5 @@
 const checkOutstandingTasks = require('./src/check-outstanding-tasks');
+const marked = require('marked');
 
 module.exports = (app) => {
   app.log('Yay! The app was loaded!');
@@ -12,12 +13,15 @@ module.exports = (app) => {
     'pull_request_review', // reviews
     'pull_request_review_comment', // comment lines on diffs for reviews
   ], async context => {
+    
+    app.log("Event Received : ", context.event)
+    
     const startTime = (new Date).toISOString();
-
     // lookup the pr
     let pr = context.payload.pull_request;
-
-    // check if this is an issue rather than pull event
+    //app.log(pr) skp
+    
+        // check if this is an issue rather than pull event
     if (context.event == 'issue_comment' && ! pr) {
       // if so we need to make sure this is for a PR only
       if (! context.payload.issue.pull_request) {
@@ -27,10 +31,10 @@ module.exports = (app) => {
       let response = await context.github.pulls.get(context.repo({
         pull_number: context.payload.issue.number
       }));
-      pr = response.data;
+      pr = response.data;      
     }
-
-    let outstandingTasks = checkOutstandingTasks(pr.body);
+    
+    let outstandingTasks = checkOutstandingTasks(app, pr.body);
 
     // lookup comments on the PR
     let comments = await context.github.issues.listComments(context.repo({
@@ -56,7 +60,7 @@ module.exports = (app) => {
     // & check them for tasks
     if (comments.data.length) {
       comments.data.forEach(function (comment) {
-        let commentOutstandingTasks = checkOutstandingTasks(comment.body);
+        let commentOutstandingTasks = checkOutstandingTasks(app, comment.body);
         outstandingTasks.total += commentOutstandingTasks.total;
         outstandingTasks.remaining += commentOutstandingTasks.remaining;
       });
